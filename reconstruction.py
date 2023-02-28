@@ -1,11 +1,9 @@
 import numpy as np
 import pyrender
+import smplx
 import torch
 import trimesh
 from constants import AUGMENTED_VERTICES_INDEX_DICT, JOINT_NAMES, K1, K2
-
-import smplx
-import smplx.joint_names
 
 
 def get_axis_angle_from_ann(ann, start_index, end_index):

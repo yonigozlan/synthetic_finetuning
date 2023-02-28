@@ -11,12 +11,8 @@ from scipy.spatial.transform import Rotation
 class VideoScene:
     def __init__(self, exercise: str, index_video: int, load_example: bool = False):
         if load_example:
-            self.json_path = (
-                "synthetic_finetuning/data/api_example/situp/video.rgb.json"
-            )
-            self.video_path = (
-                "synthetic_finetuning/data/api_example/situp/video.rgb.mp4"
-            )
+            self.json_path = "synthetic_finetuning/data/api_example/squat_goblet_sumo_dumbell/video.rgb.json"
+            self.video_path = "synthetic_finetuning/data/api_example/squat_goblet_sumo_dumbell/video.rgb.mp4"
         else:
             exercise_folder = f"infinity-datasets/fitness-basic/infinityai_fitness_basic_{exercise}_v1.0/data"
             self.json_path = sorted(glob.glob(osp.join(exercise_folder, "*.json")))[
@@ -30,7 +26,6 @@ class VideoScene:
         self.infos = self.coco.dataset.get("info")
         self.scene_id = self.infos["scene_id"]
         if "camera_K_matrix" in self.infos:
-            print("got K matrix from json")
             self.K = np.array(self.infos["camera_K_matrix"])
         else:
             self.K = K2 if self.scene_id == "4578713" else K1
@@ -48,7 +43,7 @@ class VideoScene:
         cap = cv2.VideoCapture(self.video_path)
         self.fps = int(cap.get(cv2.CAP_PROP_FPS))
         img = None
-        for _ in range(index_frame):
+        for _ in range(index_frame + 1):
             ret, img = cap.read()
             if not ret:
                 break

@@ -39,7 +39,7 @@ if __name__ == "__main__":
             )
 
         projected_vertices = video_scene.compute_2d_projection(
-            joints, vertices, method="pnp"
+            joints, vertices, method="align_3d"
         )
         image_points = np.array(
             [
@@ -68,7 +68,9 @@ if __name__ == "__main__":
 
         image_dims = (512, 512)
         fourcc = cv2.VideoWriter_fourcc(*"mp4v")
-        skel_path = os.path.join("output/situp", "example_align_3d.mp4")
+        skel_path = os.path.join(
+            "output/squat_goblet_sumo_dumbell", "example_align_3d.mp4"
+        )
         out = cv2.VideoWriter(skel_path, fourcc, video_scene.fps, image_dims)
         if show_mesh:
             nodes = []
