@@ -12,12 +12,14 @@ from video_scene import VideoScene
 if __name__ == "__main__":
     model_folder = "./models"
     model_type = "smplx"
-    exercise = "birddog"
+    exercise = "situp"
+    method = "align_3d"
 
     index_frame = 1
     index_video = 90
     animation = True
     show_mesh = False
+    project_all_vertices = False
 
     if not animation:
         video_scene = VideoScene(exercise, index_video, load_example=True)
@@ -37,10 +39,14 @@ if __name__ == "__main__":
             reconstruction.show_mesh(
                 scene, viewer, vertices, augmented_vertices, smplx_model, joints
             )
-
-        projected_vertices = video_scene.compute_2d_projection(
-            joints, vertices, method="align_3d"
-        )
+        if project_all_vertices:
+            projected_vertices = video_scene.compute_2d_projection(
+                joints, vertices, method=method
+            )
+        else:
+            projected_vertices = video_scene.compute_2d_projection(
+                joints, augmented_vertices, method=method
+            )
         image_points = np.array(
             [
                 [
@@ -57,8 +63,6 @@ if __name__ == "__main__":
                 np.array(img), (int(point[0]), int(point[1])), 0, (0, 0, 255), -1
             )
 
-        print(projected_vertices)
-
         im = Image.fromarray(cv2.cvtColor(np.uint8(img), cv2.COLOR_BGR2RGB))
         im.show()
 
@@ -68,9 +72,12 @@ if __name__ == "__main__":
 
         image_dims = (512, 512)
         fourcc = cv2.VideoWriter_fourcc(*"mp4v")
-        skel_path = os.path.join(
-            "output/squat_goblet_sumo_dumbell", "example_align_3d.mp4"
-        )
+        if project_all_vertices:
+            skel_path = os.path.join(f"output/{exercise}", f"example_{method}.mp4")
+        else:
+            skel_path = os.path.join(
+                f"output/{exercise}", f"example_{method}_augmented.mp4"
+            )
         out = cv2.VideoWriter(skel_path, fourcc, video_scene.fps, image_dims)
         if show_mesh:
             nodes = []
@@ -103,10 +110,17 @@ if __name__ == "__main__":
                     joints,
                     nodes=nodes,
                 )
+            if project_all_vertices:
+                projected_vertices = video_scene.compute_2d_projection(
+                    joints, vertices, method=method
+                )
+            else:
+                projected_vertices = video_scene.compute_2d_projection(
+                    joints, augmented_vertices, method=method
+                )
 
-            projected_vertices = video_scene.compute_2d_projection(
-                joints, vertices, method="align_3d"
-            )
+            print("reprojection accuracy", video_scene.compute_reprojection_accuracy())
+
             image_points = np.array(
                 [
                     [
@@ -118,15 +132,20 @@ if __name__ == "__main__":
                 dtype=np.float32,
             )
 
+            point_size = -1 if project_all_vertices else 3
             for point in projected_vertices:
                 img = cv2.circle(
-                    np.array(img), (int(point[0]), int(point[1])), 0, (0, 0, 255), -1
+                    np.array(img),
+                    (int(point[0]), int(point[1])),
+                    0,
+                    (0, 0, 255),
+                    point_size,
                 )
 
             index_frame += 1
             out.write(img)
+            print("Mean accuracy", video_scene.get_mean_accuracy())
 
-            video_scene = VideoScene(exercise, index_video, load_example=True)
             img, img_data, infos = video_scene.load_frame(index_frame)
 
         out.release()

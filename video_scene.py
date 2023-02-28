@@ -11,8 +11,34 @@ from scipy.spatial.transform import Rotation
 class VideoScene:
     def __init__(self, exercise: str, index_video: int, load_example: bool = False):
         if load_example:
-            self.json_path = "synthetic_finetuning/data/api_example/squat_goblet_sumo_dumbell/video.rgb.json"
-            self.video_path = "synthetic_finetuning/data/api_example/squat_goblet_sumo_dumbell/video.rgb.mp4"
+            self.json_path = (
+                f"synthetic_finetuning/data/api_example/{exercise}/video.rgb.json"
+            )
+            self.video_path = (
+                f"synthetic_finetuning/data/api_example/{exercise}/video.rgb.mp4"
+            )
+            iseg_paths = sorted(
+                glob.glob(
+                    osp.join(
+                        f"synthetic_finetuning/data/api_example/{exercise}/video.rgb",
+                        "*.iseg.*.png",
+                    )
+                )
+            )
+
+            nb_elements = len(
+                glob.glob(
+                    osp.join(
+                        f"synthetic_finetuning/data/api_example/{exercise}/video.rgb",
+                        "image.000000.iseg.*.png",
+                    )
+                )
+            )
+            self.iseg_paths = [
+                path
+                for path in iseg_paths
+                if int(path.split(".")[-2]) % nb_elements == 0
+            ]
         else:
             exercise_folder = f"infinity-datasets/fitness-basic/infinityai_fitness_basic_{exercise}_v1.0/data"
             self.json_path = sorted(glob.glob(osp.join(exercise_folder, "*.json")))[
@@ -33,7 +59,11 @@ class VideoScene:
             self.current_extrinsic_matrix = np.array(self.infos["camera_RT_matrix"])
         self.current_img = None
         self.current_ann = None
+        self.current_seg = None
+        self.current_vertices = None
         self.fps = None
+
+        self.mean_accuracy = []
 
     def load_frame(self, index_frame: int):
         img_data = list(self.coco.imgs.values())[index_frame]
@@ -55,6 +85,7 @@ class VideoScene:
 
         self.current_img = img
         self.current_ann = ann
+        self.current_seg = cv2.imread(self.iseg_paths[index_frame])
 
         return img, ann, self.infos
 
@@ -95,7 +126,7 @@ class VideoScene:
         centered_smplx_points = smplx_points - translation_smplx_points
 
         R, loss = Rotation.align_vectors(centered_image_points, centered_smplx_points)
-        print(loss)
+        print("align vectors loss", loss)
         R = R.as_matrix()
         RT = np.concatenate([R, translation_image_points[:, np.newaxis]], axis=1)
 
@@ -122,4 +153,25 @@ class VideoScene:
         vertices = np.matmul(vertices, self.K.T)
         vertices = vertices[:, :2] / vertices[:, 2:]
 
+        self.current_vertices = vertices
+
         return vertices
+
+    def compute_reprojection_accuracy(self):
+        outside_vertices = 0
+        for vertex in self.current_vertices:
+            x, y = int(vertex[0]), int(vertex[1])
+            if (
+                0 <= x < self.current_seg.shape[0]
+                and 0 <= y < self.current_seg.shape[1]
+                and not self.current_seg[y, x].any()
+            ):
+                outside_vertices += 1
+
+        accuracy = 1 - outside_vertices / self.current_vertices.shape[0]
+        self.mean_accuracy.append(accuracy)
+
+        return accuracy
+
+    def get_mean_accuracy(self):
+        return np.mean(self.mean_accuracy)
