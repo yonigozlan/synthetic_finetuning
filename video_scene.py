@@ -1,5 +1,6 @@
 import glob
 import os.path as osp
+from typing import Optional
 
 import cv2
 import numpy as np
@@ -9,8 +10,13 @@ from scipy.spatial.transform import Rotation
 
 
 class VideoScene:
-    def __init__(self, exercise: str, index_video: int, load_example: bool = False):
-        if load_example:
+    def __init__(
+        self,
+        path_to_example: Optional[str] = None,
+        exercise: Optional[str] = None,
+        index_video: Optional[int] = None,
+    ):
+        if path_to_example is None:
             self.json_path = (
                 f"synthetic_finetuning/data/api_example/{exercise}/video.rgb.json"
             )
@@ -34,19 +40,32 @@ class VideoScene:
                     )
                 )
             )
-            self.iseg_paths = [
-                path
-                for path in iseg_paths
-                if int(path.split(".")[-2]) % nb_elements == 0
-            ]
+
         else:
-            exercise_folder = f"infinity-datasets/fitness-basic/infinityai_fitness_basic_{exercise}_v1.0/data"
-            self.json_path = sorted(glob.glob(osp.join(exercise_folder, "*.json")))[
-                index_video
-            ]
-            self.video_path = sorted(glob.glob(osp.join(exercise_folder, "*.mp4")))[
-                index_video
-            ]
+            self.json_path = f"{path_to_example}.json"
+            self.video_path = f"{path_to_example}.mp4"
+
+            iseg_paths = sorted(
+                glob.glob(
+                    osp.join(
+                        path_to_example,
+                        "*.iseg.*.png",
+                    )
+                )
+            )
+
+            nb_elements = len(
+                glob.glob(
+                    osp.join(
+                        path_to_example,
+                        "image.000000.iseg.*.png",
+                    )
+                )
+            )
+
+        self.iseg_paths = [
+            path for path in iseg_paths if int(path.split(".")[-2]) % nb_elements == 0
+        ]
 
         self.coco = COCO(self.json_path)
         self.infos = self.coco.dataset.get("info")
@@ -61,8 +80,14 @@ class VideoScene:
         self.current_ann = None
         self.current_seg = None
         self.current_vertices = None
-        self.fps = None
 
+        self.cap = cv2.VideoCapture(self.video_path)
+        self.fps = int(self.cap.get(cv2.CAP_PROP_FPS))
+        self.nb_frames = int(self.cap.get(cv2.CAP_PROP_FRAME_COUNT))
+        self.dims = (
+            int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH)),
+            int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT)),
+        )
         self.mean_accuracy = []
 
     def load_frame(self, index_frame: int):
@@ -70,13 +95,10 @@ class VideoScene:
         img_id = img_data["id"]
         ann_ids = self.coco.getAnnIds(imgIds=img_id)
         anns = self.coco.loadAnns(ann_ids)
-        cap = cv2.VideoCapture(self.video_path)
-        self.fps = int(cap.get(cv2.CAP_PROP_FPS))
-        img = None
-        for _ in range(index_frame + 1):
-            ret, img = cap.read()
-            if not ret:
-                break
+        self.cap.set(cv2.CAP_PROP_POS_FRAMES, index_frame)
+        res, img = self.cap.read()
+        if not res:
+            img = None
 
         anns = [ann for ann in anns if "armature_keypoints" in ann]
         if len(anns) > 1:

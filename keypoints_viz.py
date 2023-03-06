@@ -12,17 +12,17 @@ from video_scene import VideoScene
 if __name__ == "__main__":
     model_folder = "./models"
     model_type = "smplx"
-    exercise = "situp"
+    exercise = "armraise_2"
     method = "align_3d"
 
     index_frame = 1
     index_video = 90
     animation = True
     show_mesh = False
-    project_all_vertices = False
+    project_all_vertices = True
 
     if not animation:
-        video_scene = VideoScene(exercise, index_video, load_example=True)
+        video_scene = VideoScene(exercise=exercise, index_video=index_video)
         img, img_data, infos = video_scene.load_frame(index_frame)
         gender = infos["avatar_presenting_gender"]
         betas = torch.tensor(infos["avatar_betas"], dtype=torch.float32).unsqueeze(0)
@@ -67,18 +67,18 @@ if __name__ == "__main__":
         im.show()
 
     if animation:
-        video_scene = VideoScene(exercise, index_video, load_example=True)
+        video_scene = VideoScene(exercise=exercise, index_video=index_video)
         img, img_data, infos = video_scene.load_frame(index_frame)
 
         image_dims = (512, 512)
         fourcc = cv2.VideoWriter_fourcc(*"mp4v")
         if project_all_vertices:
-            skel_path = os.path.join(f"output/{exercise}", f"example_{method}.mp4")
+            output_path = os.path.join(f"output/{exercise}", f"example_{method}.mp4")
         else:
-            skel_path = os.path.join(
+            output_path = os.path.join(
                 f"output/{exercise}", f"example_{method}_augmented.mp4"
             )
-        out = cv2.VideoWriter(skel_path, fourcc, video_scene.fps, image_dims)
+        out = cv2.VideoWriter(output_path, fourcc, video_scene.fps, image_dims)
         if show_mesh:
             nodes = []
         while True:

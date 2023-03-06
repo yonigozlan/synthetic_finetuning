@@ -18,6 +18,9 @@ K2 = np.array([[245.0, 0.0, 112.0], [0.0, 245.0, 112.0], [0.0, 0.0, 1.0]])
 
 AUGMENTED_VERTICES_FILE_PATH = "synthetic_finetuning/data/vertices_keypoints_corr.csv"
 AUGMENTED_VERTICES_INDEX_DICT = load_augmented_corr()
+AUGMENTED_VERTICES_NAMES = list(AUGMENTED_VERTICES_INDEX_DICT.keys())
+
+MODEL_FOLDER = "./models"
 
 JOINT_NAMES = [
     "pelvis",
