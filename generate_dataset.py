@@ -16,14 +16,16 @@ class DatasetGenerator:
     def __init__(
         self,
         data_folder: str,
-        sample_rate: int = 0.2,
+        sample_rate: int = 0.3,
         method="align_3d",
-        output_path="infinity_dataset",
+        output_path="infinity_dataset/train",
+        shift=0,
     ):
         self.data_folder = data_folder
         self.sample_rate = sample_rate
         self.method = method
         self.output_path = output_path
+        self.shift = shift
         self.json_paths = sorted(glob.glob(os.path.join(data_folder, "**.json")))
         self.video_paths = sorted(glob.glob(os.path.join(data_folder, "*/*.mp4")))
         self.data_dict = {
@@ -33,14 +35,18 @@ class DatasetGenerator:
             "categories": [],
         }
 
-        self.data_dict["categories"] = {"id": 0, "keypoints": AUGMENTED_VERTICES_NAMES}
+        self.data_dict["categories"] = [
+            {"id": 0, "keypoints": AUGMENTED_VERTICES_NAMES}
+        ]
+        if not os.path.exists(os.path.join(self.output_path, "images")):
+            os.makedirs(os.path.join(self.output_path, "images"))
 
     def generate_dataset(self):
         for video_path in self.video_paths:
             path = ".".join(video_path.split(".")[:-1])
             video_scene = VideoScene(path_to_example=path)
             indices_to_sample = list(
-                range(0, video_scene.nb_frames, int(1 / self.sample_rate))
+                range(self.shift, video_scene.nb_frames, int(1 / self.sample_rate))
             )
             for index_frame in indices_to_sample:
                 (
@@ -80,6 +86,7 @@ class DatasetGenerator:
         annotation_dict["bbox"] = ann["bbox"]
         annotation_dict["percent_in_fov"] = ann["percent_in_fov"]
         annotation_dict["percent_occlusion"] = ann["percent_occlusion"]
+        annotation_dict["iscrowd"] = 0
 
         return annotation_dict
 
@@ -115,5 +122,11 @@ class DatasetGenerator:
 
 
 if __name__ == "__main__":
-    dataset_generator = DatasetGenerator("synthetic_finetuning/data/api_example")
+    dataset_generator = DatasetGenerator(
+        data_folder="synthetic_finetuning/data/api_example",
+        sample_rate=0.1,
+        method="align_3d",
+        output_path="infinity_dataset/test",
+        shift=1,
+    )
     dataset_generator.generate_dataset()

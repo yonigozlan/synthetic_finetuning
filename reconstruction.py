@@ -85,6 +85,7 @@ def get_smplx_model(
         leye_pose=poses["leye_pose"],
         reye_pose=poses["reye_pose"],
         use_pca=False,
+        flat_hand_mean=True,
     )
 
 

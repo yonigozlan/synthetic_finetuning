@@ -12,7 +12,7 @@ from video_scene import VideoScene
 if __name__ == "__main__":
     model_folder = "./models"
     model_type = "smplx"
-    exercise = "armraise_2"
+    exercise = "burpee"
     method = "align_3d"
 
     index_frame = 1
