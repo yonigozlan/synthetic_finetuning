@@ -1,5 +1,7 @@
 import glob
+import os
 import os.path as osp
+import zipfile
 from typing import Optional
 
 import cv2
@@ -44,6 +46,19 @@ class VideoScene:
         else:
             self.json_path = f"{path_to_example}.json"
             self.video_path = f"{path_to_example}.mp4"
+            # check if path exists
+            if not sorted(
+                glob.glob(
+                    osp.join(
+                        path_to_example,
+                        "*.iseg.*.png",
+                    )
+                )
+            ):
+                # create directory
+                os.makedirs(path_to_example)
+                with zipfile.ZipFile(f"{path_to_example}.zip", "r") as zip_ref:
+                    zip_ref.extractall(path_to_example)
 
             iseg_paths = sorted(
                 glob.glob(
@@ -62,6 +77,9 @@ class VideoScene:
                     )
                 )
             )
+            if not iseg_paths:
+                archive = zipfile.ZipFile(f"{path_to_example}.zip", "r")
+                imgdata = archive.read("img_01.png")
 
         self.iseg_paths = [
             path for path in iseg_paths if int(path.split(".")[-2]) % nb_elements == 0
@@ -148,7 +166,7 @@ class VideoScene:
         centered_smplx_points = smplx_points - translation_smplx_points
 
         R, loss = Rotation.align_vectors(centered_image_points, centered_smplx_points)
-        print("align vectors loss", loss)
+        # print("align vectors loss", loss)
         R = R.as_matrix()
         RT = np.concatenate([R, translation_image_points[:, np.newaxis]], axis=1)
 

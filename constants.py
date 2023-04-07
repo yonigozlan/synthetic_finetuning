@@ -13,14 +13,73 @@ def load_augmented_corr():
     return augmented_vertices_index_dict
 
 
+exercises = [
+    "V_UP",
+    "SITUP",
+    "BRIDGE",
+    "BURPEE",
+    "PUSHUP",
+    "BIRD_DOG",
+    "CRUNCHES",
+    "SUPERMAN",
+    "LEG_RAISE",
+    "DOWNWARD_DOG",
+    "UPPERCUT-LEFT",
+    "CLAMSHELL-LEFT",
+    "UPPERCUT-RIGHT",
+    "CLAMSHELL-RIGHT",
+    "LUNGE-CROSSBACK",
+    "BEAR_CRAWL-HOLDS",
+    "DONKEY_KICK-LEFT",
+    "PUSHUP-EXPLOSIVE",
+    "SQUAT-BODYWEIGHT",
+    "DEADLIFT-DUMBBELL",
+    "DONKEY_KICK-RIGHT",
+    "PUSHUP-CLOSE_GRIP",
+    "ARM_RAISE-DUMBBELL",
+    "BICEP_CURL-BARBELL",
+    "SQUAT-BACK-BARBELL",
+    "SQUAT-GOBLET+SUMO-DUMBBELL",
+    "PRESS-SINGLE_ARM-DUMBBELL-LEFT",
+    "BICEP_CURL-ALTERNATING-DUMBBELL",
+    "PRESS-SINGLE_ARM-DUMBBELL-RIGHT",
+    "PUSH_PRESS-SINGLE_ARM-DUMBBELL-LEFT",
+    "PUSH_PRESS-SINGLE_ARM-DUMBBELL-RIGHT",
+    "SPLIT_SQUAT-SINGLE_ARM-DUMBBELL-LEFT",
+    "SPLIT_SQUAT-SINGLE_ARM-DUMBBELL-RIGHT",
+    "TRICEP_KICKBACK-BENT_OVER+SINGLE_ARM-DUMBBELL-LEFT",
+    "TRICEP_KICKBACK-BENT_OVER+SINGLE_ARM-DUMBBELL-RIGHT",
+]
+
+
 K1 = np.array([[311.11, 0.0, 112.0], [0.0, 311.11, 112.0], [0.0, 0.0, 1.0]])
 K2 = np.array([[245.0, 0.0, 112.0], [0.0, 245.0, 112.0], [0.0, 0.0, 1.0]])
 
 AUGMENTED_VERTICES_FILE_PATH = "synthetic_finetuning/data/vertices_keypoints_corr.csv"
 AUGMENTED_VERTICES_INDEX_DICT = load_augmented_corr()
 AUGMENTED_VERTICES_NAMES = list(AUGMENTED_VERTICES_INDEX_DICT.keys())
+COCO_VERTICES_NAME = [
+    "nose",
+    "left_eye",
+    "right_eye",
+    "left_ear",
+    "right_ear",
+    "left_shoulder",
+    "right_shoulder",
+    "left_elbow",
+    "right_elbow",
+    "left_wrist",
+    "right_wrist",
+    "left_hip",
+    "right_hip",
+    "left_knee",
+    "right_knee",
+    "left_ankle",
+    "right_ankle",
+]
 
 MODEL_FOLDER = "./models"
+
 
 JOINT_NAMES = [
     "pelvis",
