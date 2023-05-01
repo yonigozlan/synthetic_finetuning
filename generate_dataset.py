@@ -21,7 +21,7 @@ class DatasetGenerator:
         samples_per_video: int = 5,
         # sample_rate: int = 0.3,
         method="align_3d",
-        output_path="infinity_dataset",
+        output_path="infinity_dataset_combined",
         shift=0,
         split=0.8,
     ):
@@ -190,8 +190,8 @@ class DatasetGenerator:
 
 if __name__ == "__main__":
     dataset_generator = DatasetGenerator(
-        data_folder="synthetic_finetuning/large_job_infinity_512/20230406_T123519975688_random_batch_test",
+        data_folder="synthetic_finetuning/large_job_infinity_combined",
         method="align_3d",
-        output_path="infinity_dataset_medium_512",
+        output_path="infinity_dataset_combined",
     )
     dataset_generator.generate_dataset()
