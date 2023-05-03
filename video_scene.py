@@ -17,18 +17,21 @@ class VideoScene:
         path_to_example: Optional[str] = None,
         exercise: Optional[str] = None,
         index_video: Optional[int] = None,
+        video_name="video",
+        labels_name="labels",
+        segmentation_name="segmentation",
     ):
         if path_to_example is None:
             self.json_path = (
-                f"synthetic_finetuning/data/api_example/{exercise}/video.rgb.json"
+                f"synthetic_finetuning/data/api_example/{exercise}/{labels_name}.json"
             )
             self.video_path = (
-                f"synthetic_finetuning/data/api_example/{exercise}/video.rgb.mp4"
+                f"synthetic_finetuning/data/api_example/{exercise}/{video_name}.mp4"
             )
             iseg_paths = sorted(
                 glob.glob(
                     osp.join(
-                        f"synthetic_finetuning/data/api_example/{exercise}/video.rgb",
+                        f"synthetic_finetuning/data/api_example/{exercise}/{segmentation_name}",
                         "*.iseg.*.png",
                     )
                 )
@@ -37,46 +40,32 @@ class VideoScene:
             nb_elements = len(
                 glob.glob(
                     osp.join(
-                        f"synthetic_finetuning/data/api_example/{exercise}/video.rgb",
+                        f"synthetic_finetuning/data/api_example/{exercise}/{segmentation_name}",
                         "image.000000.iseg.*.png",
                     )
                 )
             )
 
         else:
-            self.json_path = f"{path_to_example}.json"
-            self.video_path = f"{path_to_example}.mp4"
+            self.json_path = osp.join(path_to_example, f"{labels_name}.json")
+            self.video_path = osp.join(path_to_example, f"{video_name}.mp4")
+            iseg_paths_glob = osp.join(
+                path_to_example, f"{segmentation_name}/*.iseg.*.png"
+            )
+            iseg_path = osp.join(path_to_example, segmentation_name)
             # check if path exists
-            if not sorted(
-                glob.glob(
-                    osp.join(
-                        path_to_example,
-                        "*.iseg.*.png",
-                    )
-                )
-            ):
+            if not sorted(glob.glob(iseg_paths_glob)):
                 # create directory
-                os.makedirs(path_to_example)
-                with zipfile.ZipFile(f"{path_to_example}.zip", "r") as zip_ref:
-                    zip_ref.extractall(path_to_example)
+                os.makedirs(iseg_path)
+                with zipfile.ZipFile(f"{iseg_path}.zip", "r") as zip_ref:
+                    zip_ref.extractall(iseg_path)
 
-            iseg_paths = sorted(
-                glob.glob(
-                    osp.join(
-                        path_to_example,
-                        "*.iseg.*.png",
-                    )
-                )
-            )
+            iseg_paths = sorted(glob.glob(iseg_paths_glob))
 
-            nb_elements = len(
-                glob.glob(
-                    osp.join(
-                        path_to_example,
-                        "image.000000.iseg.*.png",
-                    )
-                )
+            iseg_elements_glob = osp.join(
+                path_to_example, f"{segmentation_name}/image.000000.iseg.*.png"
             )
+            nb_elements = len(glob.glob(iseg_elements_glob))
             if not iseg_paths:
                 archive = zipfile.ZipFile(f"{path_to_example}.zip", "r")
                 imgdata = archive.read("img_01.png")

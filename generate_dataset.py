@@ -18,12 +18,13 @@ class DatasetGenerator:
     def __init__(
         self,
         data_folder: str,
-        samples_per_video: int = 5,
+        samples_per_video: int = 8,
         # sample_rate: int = 0.3,
         method="align_3d",
         output_path="infinity_dataset_combined",
         shift=0,
         split=0.8,
+        infinity_version="v0.1.0",
     ):
         self.data_folder = data_folder
         self.samples_per_video = samples_per_video
@@ -32,11 +33,16 @@ class DatasetGenerator:
         self.output_path_test = os.path.join(output_path, "test")
         self.shift = shift
         self.split = split
-        self.json_paths = sorted(
-            glob.glob(os.path.join(data_folder, "*/video.rgb.json"))
-        )
+        if infinity_version == "v0.1.0":
+            self.video_name = "video"
+            self.labels_name = "labels"
+            self.segmentation_name = "segmentation"
+        else:
+            self.video_name = "video.rgb"
+            self.labels_name = "video.rgb"
+            self.segmentation_name = "video.rgb"
         self.video_paths = sorted(
-            glob.glob(os.path.join(data_folder, "*/video.rgb.mp4"))
+            glob.glob(os.path.join(data_folder, f"*/{self.video_name}.mp4"))
         )
         self.data_dict_train = {
             "infos": {},
@@ -94,13 +100,18 @@ class DatasetGenerator:
             self.data_dict_test["images"].append(image_dict)
 
     def generate_dataset(self):
-        train_size = int(len(self.json_paths) * self.split)
+        train_size = int(len(self.video_paths) * self.split)
         mode = "train"
         for index_video, video_path in enumerate(tqdm(self.video_paths)):
             if index_video == train_size:
                 mode = "test"
-            path = ".".join(video_path.split(".")[:-1])
-            video_scene = VideoScene(path_to_example=path)
+            path = os.path.dirname(video_path)
+            video_scene = VideoScene(
+                path_to_example=path,
+                video_name=self.video_name,
+                labels_name=self.labels_name,
+                segmentation_name=self.segmentation_name,
+            )
             indices_to_sample = list(
                 set(
                     np.linspace(
@@ -190,8 +201,8 @@ class DatasetGenerator:
 
 if __name__ == "__main__":
     dataset_generator = DatasetGenerator(
-        data_folder="synthetic_finetuning/large_job_infinity_combined",
+        data_folder="synthetic_finetuning/data/new_infinity_first_batch",
         method="align_3d",
-        output_path="infinity_dataset_combined",
+        output_path="new_infinity_dataset",
     )
     dataset_generator.generate_dataset()

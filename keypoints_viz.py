@@ -12,7 +12,7 @@ from video_scene import VideoScene
 if __name__ == "__main__":
     model_folder = "./models"
     model_type = "smplx"
-    exercise = "burpee"
+    exercise = "bells"
     method = "align_3d"
 
     index_frame = 1
@@ -78,6 +78,10 @@ if __name__ == "__main__":
             output_path = os.path.join(
                 f"output/{exercise}", f"example_{method}_augmented.mp4"
             )
+
+        if not os.path.exists(os.path.dirname(output_path)):
+            os.makedirs(os.path.dirname(output_path))
+
         out = cv2.VideoWriter(output_path, fourcc, video_scene.fps, image_dims)
         if show_mesh:
             nodes = []
