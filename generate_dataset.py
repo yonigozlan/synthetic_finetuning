@@ -59,6 +59,9 @@ class DatasetGenerator:
             }
         ]
         self.data_dict_test = deepcopy(self.data_dict_train)
+        self.total_source_images = 0
+        self.total_missing_bboxes = 0
+        self.total_error_reconstruction = 0
 
         if not os.path.exists(os.path.join(self.output_path_train, "images")):
             os.makedirs(os.path.join(self.output_path_train, "images"))
@@ -129,9 +132,17 @@ class DatasetGenerator:
                     ann,
                     groundtruth_landmarks,
                     coco_landmarks,
+                    success,
                 ) = self.get_grountruth_landmarks(video_scene, index_frame)
-                if "bbox" not in ann:
+
+                self.total_source_images += 1
+                if not success:
+                    self.total_error_reconstruction += 1
                     continue
+                if "bbox" not in ann:
+                    self.total_missing_bboxes
+                    continue
+
                 annotation_dict = self.generate_annotation_dict(ann, mode=mode)
                 annotation_dict["keypoints"] = groundtruth_landmarks
                 annotation_dict["coco_keypoints"] = coco_landmarks
@@ -151,6 +162,10 @@ class DatasetGenerator:
             encoding="utf-8",
         ) as f:
             json.dump(self.data_dict_test, f, ensure_ascii=False, indent=4)
+
+        print("total source images: ", self.total_source_images)
+        print("total missing bboxes: ", self.total_missing_bboxes)
+        print("total error reconstruction: ", self.total_error_reconstruction)
 
     def generate_annotation_dict(self, ann: dict, mode: str = "train"):
         annotation_dict = {}
@@ -179,6 +194,8 @@ class DatasetGenerator:
         projected_vertices = video_scene.compute_2d_projection(
             joints, augmented_vertices, method=self.method
         )
+        if np.isnan(projected_vertices).any():
+            return img, ann, {}, {}, False
         groundtruth_landmarks = {
             name: {"x": point[0], "y": point[1]}
             for name, point in zip(AUGMENTED_VERTICES_NAMES, projected_vertices)
@@ -196,7 +213,7 @@ class DatasetGenerator:
             else:
                 groundtruth_landmarks[name]["v"] = 1
 
-        return img, ann, groundtruth_landmarks, coco_landmarks
+        return img, ann, groundtruth_landmarks, coco_landmarks, True
 
 
 if __name__ == "__main__":

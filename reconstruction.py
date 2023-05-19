@@ -13,17 +13,22 @@ def get_axis_angle_from_ann(ann, start_index, end_index):
     ]
     axis_angle = []
     for quaternion in quaternions:
-        angle = 2 * np.arccos(quaternion[0])
+        norm = np.sqrt(quaternion[1] ** 2 + quaternion[2] ** 2 + quaternion[3] ** 2)
+        angle = 2 * np.arctan2(
+            norm,
+            quaternion[0],
+        )
         if angle == 0:
             axis_angle.append([0, 0, 0])
         else:
             axis_angle.append(
                 [
-                    angle * quaternion[1] / np.sqrt(1 - quaternion[0] * quaternion[0]),
-                    angle * quaternion[2] / np.sqrt(1 - quaternion[0] * quaternion[0]),
-                    angle * quaternion[3] / np.sqrt(1 - quaternion[0] * quaternion[0]),
+                    angle * quaternion[1] / norm,
+                    angle * quaternion[2] / norm,
+                    angle * quaternion[3] / norm,
                 ]
             )
+
     return torch.tensor(axis_angle, dtype=torch.float32).reshape([1, -1])
 
 
@@ -68,7 +73,6 @@ def get_smplx_model(
     betas,
     poses,
 ):
-
     return smplx.create(
         model_folder,
         model_type="smplx",
@@ -133,7 +137,6 @@ def show_mesh(
         nodes += [scene.add(joints_pcl, name="joints")]
 
     if plot_augmented_vertices:
-
         sm = trimesh.creation.uv_sphere(radius=0.01)
         sm.visual.vertex_colors = [0.1, 0.1, 0.9, 1.0]
         tfs = np.tile(np.eye(4), (len(augmented_vertices), 1, 1))
