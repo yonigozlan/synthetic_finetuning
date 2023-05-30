@@ -218,8 +218,8 @@ class DatasetGenerator:
 
 if __name__ == "__main__":
     dataset_generator = DatasetGenerator(
-        data_folder="synthetic_finetuning/data/new_infinity_first_batch",
+        data_folder="synthetic_finetuning/data/new_infinity_second_batch",
         method="align_3d",
-        output_path="new_infinity_dataset",
+        output_path="new_infinity_dataset_2",
     )
     dataset_generator.generate_dataset()
