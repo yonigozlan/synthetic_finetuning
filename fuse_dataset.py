@@ -6,7 +6,7 @@ from constants import JSON_CATEGORIES
 from tqdm import tqdm
 
 
-def create_annotation(annotation_type, source_dir, output_dir):
+def create_annotation(annotation_type, annotation_files, source_dir, output_dir):
     combined_annotation = {
         "infos": {},
         "images": [],
@@ -16,7 +16,7 @@ def create_annotation(annotation_type, source_dir, output_dir):
 
     total_images = 0
     print(f"Creating {annotation_type} dataset...")
-    for annotation_file in tqdm(train_annotations):
+    for annotation_file in tqdm(annotation_files):
         # store json file in dictionary
         annotation = json.load(open(annotation_file))
         for index, image in enumerate(annotation["images"]):
@@ -43,7 +43,7 @@ def create_annotation(annotation_type, source_dir, output_dir):
     with open(
         os.path.join(output_dir, annotation_type, "annotations.json"), "w"
     ) as outfile:
-        json.dump(combined_annotation, outfile)
+        json.dump(combined_annotation, outfile, ensure_ascii=False, indent=4)
 
 
 if __name__ == "__main__":
@@ -58,5 +58,5 @@ if __name__ == "__main__":
         os.makedirs(os.path.join(output_dir, "train", "images"))
         os.makedirs(os.path.join(output_dir, "test", "images"))
 
-    create_annotation("train", source_dir, output_dir)
-    create_annotation("test", source_dir, output_dir)
+    create_annotation("train", train_annotations, source_dir, output_dir)
+    create_annotation("test", test_annotations, source_dir, output_dir)
