@@ -5,7 +5,6 @@ from copy import deepcopy
 
 import cv2
 import numpy as np
-import pyrender
 import reconstruction
 import torch
 from constants import AUGMENTED_VERTICES_NAMES, COCO_VERTICES_NAME, MODEL_FOLDER
@@ -218,8 +217,10 @@ class DatasetGenerator:
 
 if __name__ == "__main__":
     dataset_generator = DatasetGenerator(
-        data_folder="synthetic_finetuning/data/new_infinity_second_batch",
+        data_folder="synthetic_finetuning/data/large_job_infinity_combined",
         method="align_3d",
-        output_path="new_infinity_dataset_2",
+        output_path="old_infinity_dataset_combined",
+        samples_per_video=5,
+        infinity_version="old",
     )
     dataset_generator.generate_dataset()
